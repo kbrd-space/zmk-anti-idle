@@ -1,0 +1,23 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Init Tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/init-tests.sh",
+      "group": "none"
+    },
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/run-tests.sh",
+      "dependsOn": "Init Tests",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ]
+}

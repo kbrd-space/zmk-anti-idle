@@ -1,0 +1,9 @@
+menu "ZMK Anti-Idle Options"
+
+config ZMK_ANTI_IDLE
+    bool "Anti-Idle"
+    default y
+
+endmenu
+
+DT_COMPAT_ZMK_ANTI_IDLE := zmk,anti-idle

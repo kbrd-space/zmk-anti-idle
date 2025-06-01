@@ -1,0 +1,27 @@
+#include <dt-bindings/zmk/keys.h>
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/kscan_mock.h>
+
+/ {
+    chosen {
+        zmk,anti-idle = &anti_idle;
+    };
+
+    anti_idle: anti_idle {
+        compatible = "zmk,anti-idle";
+        interval-ms = <200>;
+        bindings = <&kp F24>;
+        tap_ms = <10>;
+        wait_ms = <10>;
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+        default_layer {
+            bindings = <
+                &kt A &kt B
+                &none &none
+            >;
+        };
+    };
+};

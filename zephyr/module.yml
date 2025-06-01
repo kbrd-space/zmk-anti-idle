@@ -1,0 +1,6 @@
+name: zmk-anti-idle
+build:
+  cmake: .
+  kconfig: Kconfig
+  settings:
+    dts_root: .

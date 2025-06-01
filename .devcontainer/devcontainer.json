@@ -1,0 +1,26 @@
+{
+  "name": "ZMK Development",
+  "dockerFile": "Dockerfile",
+  "runArgs": ["--security-opt", "label=disable"],
+  "containerEnv": {
+    "WORKSPACE_DIR": "${containerWorkspaceFolder}",
+    "PROMPT_COMMAND": "history -a"
+  },
+  "mounts": [
+    "type=volume,source=zmk-root-user,target=/root",
+    "type=volume,source=zmk-config,target=/workspaces/zmk-config",
+    "type=volume,source=zmk-modules,target=/workspaces/zmk-modules"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools"
+      ],
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+      }
+    }
+  },
+  "forwardPorts": [3000]
+}
