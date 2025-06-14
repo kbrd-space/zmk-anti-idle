@@ -1,3 +1,4 @@
+ai_on: enable
 kp_pressed: usage_page 0x07 keycode 0x04 implicit_mods 0x00 explicit_mods 0x00
 ai_handler: queue anti-idle 1 bindings
 kp_pressed: usage_page 0x07 keycode 0x73 implicit_mods 0x00 explicit_mods 0x00

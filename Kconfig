@@ -5,5 +5,3 @@ config ZMK_ANTI_IDLE
     default y
 
 endmenu
-
-DT_COMPAT_ZMK_ANTI_IDLE := zmk,anti-idle

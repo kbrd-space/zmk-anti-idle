@@ -1,14 +1,12 @@
 #include <dt-bindings/zmk/keys.h>
-#include <behaviors.dtsi>
 #include <dt-bindings/zmk/kscan_mock.h>
+#include <behaviors.dtsi>
+#include <behaviors/anti_idle.dtsi>
+#include <dt-bindings/anti_idle.h>
 
 / {
-    chosen {
-        zmk,anti-idle = &anti_idle;
-    };
-
-    anti_idle: anti_idle {
-        compatible = "zmk,anti-idle";
+    anti_idle {
+        compatible = "zmk,anti-idle-generic";
         interval-ms = <200>;
         bindings = <&kp F24>;
         tap_ms = <10>;
@@ -20,7 +18,7 @@
         default_layer {
             bindings = <
                 &kt A &kt B
-                &none &none
+                &ai AI_TOG &none
             >;
         };
     };

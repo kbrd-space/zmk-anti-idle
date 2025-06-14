@@ -1,6 +1,9 @@
-description: "Anti-Idle"
+# Copyright (c) 2025 The ZMK Contributors
+# SPDX-License-Identifier: MIT
 
-compatible: "zmk,anti-idle"
+description: "Anti-Idle Generic Configuration"
+
+compatible: "zmk,anti-idle-generic"
 
 properties:
   interval-ms:
