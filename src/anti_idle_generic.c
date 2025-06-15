@@ -16,10 +16,14 @@
 
 #include <zmk/behavior.h>
 #include <zmk/behavior_queue.h>
+#include <zmk/ble.h>
+#include <zmk/endpoints.h>
+#include <zmk/endpoints_types.h>
 #include <zmk/event_manager.h>
 #include <zmk/hid.h>
 #include <zmk/matrix.h>
 #include <zmk/keymap.h>
+#include <zmk/usb.h>
 
 #if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
 
@@ -47,11 +51,44 @@ static struct anti_idle_state state = { .on = false };
 
 static struct k_work_delayable anti_idle_work;
 
+#if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED)
+static bool anti_idle_is_endpoint_connected(void) {
+    struct zmk_endpoint_instance endpoint_instance = zmk_endpoints_selected();
+
+    switch (endpoint_instance.transport) {
+        case ZMK_TRANSPORT_USB:
+#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+            bool usb_is_connected = zmk_usb_is_powered();
+            return usb_is_connected;
+#else
+            break;
+#endif
+        case ZMK_TRANSPORT_BLE:
+#if IS_ENABLED(CONFIG_ZMK_BLE)
+            bool ble_is_connected = zmk_ble_active_profile_is_connected();
+            return ble_is_connected;
+#else
+            break;
+#endif
+    }
+
+    LOG_ERR("Unsupported transport type: %d", endpoint_instance.transport);
+    return false;
+}
+#endif // !(IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED))
+
 static void anti_idle_handler(struct k_work *work) {
     if (!state.on) {
         LOG_DBG("anti-idle is off, skipping execution");
         return;
     }
+
+#if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED)
+    if (!anti_idle_is_endpoint_connected()) {
+        LOG_DBG("endpoint is not connected, skipping execution");
+        return;
+    }
+#endif // IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED)
 
     struct zmk_behavior_binding_event event = {
         .position = INT32_MAX,

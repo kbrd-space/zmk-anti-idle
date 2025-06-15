@@ -4,4 +4,8 @@ config ZMK_ANTI_IDLE
     bool "Anti-Idle"
     default y
 
+config ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED
+    bool "Enable when connected"
+    default y
+
 endmenu
