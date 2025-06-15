@@ -17,7 +17,7 @@
         compatible = "zmk,keymap";
         default_layer {
             bindings = <
-                &kt A &kt B
+                &kp A &kp B
                 &ai AI_TOG &none
             >;
         };

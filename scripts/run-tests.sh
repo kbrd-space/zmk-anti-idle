@@ -10,7 +10,7 @@ export ZMK_SRC_DIR="./zmk/app"
 export ZMK_EXTRA_MODULES="${source_dir}"
 export ZMK_TESTS_VERBOSE="1"
 
-rm -rf "${workspace}/${testapp_dir}/tests/*"
+rm -rf ${workspace}/${testapp_dir}/tests/*
 mkdir -p "${workspace}/${testapp_dir}/tests"
 cp -R ${source_dir}/tests/scenarios/* "${workspace}/${testapp_dir}/tests/"
 

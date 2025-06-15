@@ -20,6 +20,9 @@
 #include <zmk/endpoints.h>
 #include <zmk/endpoints_types.h>
 #include <zmk/event_manager.h>
+#include <zmk/events/mouse_button_state_changed.h>
+#include <zmk/events/position_state_changed.h>
+#include <zmk/events/sensor_event.h>
 #include <zmk/hid.h>
 #include <zmk/matrix.h>
 #include <zmk/keymap.h>
@@ -177,5 +180,14 @@ int zmk_anti_idle_toggle(void) {
 }
 
 SYS_INIT(anti_idle_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
+
+static int activity_event_listener(const zmk_event_t *eh) {
+    int ret = k_work_reschedule(&anti_idle_work, K_MSEC(ANTI_IDLE_INTERVAL_MS));
+    return MIN(ret, 0);
+}
+
+ZMK_LISTENER(anti_idle_activity, activity_event_listener);
+ZMK_SUBSCRIPTION(anti_idle_activity, zmk_position_state_changed);
+ZMK_SUBSCRIPTION(anti_idle_activity, zmk_sensor_event);
 
 #endif // !DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)

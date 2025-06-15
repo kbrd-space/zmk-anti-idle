@@ -1,0 +1,2 @@
+s/.*hid_listener_keycode_/kp_/p
+s/.*anti_idle_/ai_/p
