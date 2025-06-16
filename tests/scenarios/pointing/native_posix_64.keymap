@@ -1,0 +1,16 @@
+#include <behaviors/mouse_move.dtsi>
+#include <dt-bindings/zmk/pointing.h>
+
+#include "../behavior_keymap.dtsi"
+
+&anti_idle {
+    bindings = <&mmv MOVE_DOWN &mmv MOVE_UP>;
+    tap_ms = <50>;
+};
+
+&kscan {
+    events = <
+        ZMK_MOCK_PRESS(1,0,10)
+        ZMK_MOCK_RELEASE(1,0,400)
+    >;
+};
