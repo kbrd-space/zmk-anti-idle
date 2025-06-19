@@ -1,4 +1,4 @@
-ai_on: enable
+ai_set_state: anti-idle state set to on for shared
 ai_handler: queue anti-idle 2 bindings
 m_movement_set: Mouse movement set to 0/1
 m_scroll_set: Mouse scroll set to 0/0

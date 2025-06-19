@@ -4,8 +4,16 @@ config ZMK_ANTI_IDLE
     bool "Anti-Idle"
     default y
 
+if ZMK_ANTI_IDLE
+
 config ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED
-    bool "Enable when connected"
+    bool "Enable only when connected"
     default y
+
+config ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION
+    bool "The endpoint shares the same configuration for all the endpoint profiles"
+    default n
+
+endif
 
 endmenu

@@ -10,7 +10,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/settings/settings.h>
-#include <zephyr/pm/device.h>
 #include <zephyr/device.h>
 #include <zephyr/sys/dlist.h>
 
@@ -23,8 +22,6 @@
 #include <zmk/events/mouse_button_state_changed.h>
 #include <zmk/events/position_state_changed.h>
 #include <zmk/events/sensor_event.h>
-#include <zmk/hid.h>
-#include <zmk/matrix.h>
 #include <zmk/keymap.h>
 #include <zmk/usb.h>
 
@@ -50,9 +47,40 @@ struct anti_idle_state {
     bool on;
 };
 
+#if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
 static struct anti_idle_state state = { .on = false };
+#else
+#if ZMK_ENDPOINT_COUNT == 0
+#error "ZMK_ENDPOINT_COUNT must be greater than 0 for anti-idle to work"
+#endif // ZMK_ENDPOINT_COUNT == 0
+static struct anti_idle_state state[ZMK_ENDPOINT_COUNT] = {[0 ... (ZMK_ENDPOINT_COUNT-1)] = { .on = false } };
+#endif // IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
 
 static struct k_work_delayable anti_idle_work;
+
+int zmk_anti_idle_get_state(bool *on_off) {
+#if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
+    *on_off = state.on;
+#else 
+    struct zmk_endpoint_instance endpoint_instance = zmk_endpoints_selected();
+    int endpoint_index = zmk_endpoint_instance_to_index(endpoint_instance);
+    *on_off = state[endpoint_index].on;
+#endif // IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
+    return 0;
+}
+
+int zmk_anti_idle_set_state(bool on_off) {
+#if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
+    state.on = on_off;
+    LOG_DBG("anti-idle state set to %s for shared", on_off ? "on" : "off");
+#else
+    struct zmk_endpoint_instance endpoint_instance = zmk_endpoints_selected();
+    int endpoint_index = zmk_endpoint_instance_to_index(endpoint_instance);
+    state[endpoint_index].on = on_off;
+    LOG_DBG("anti-idle state set to %s for endpoint %d", on_off ? "on" : "off", endpoint_index);
+#endif // IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
+    return 0;
+}
 
 #if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED)
 static bool anti_idle_is_endpoint_connected(void) {
@@ -77,7 +105,14 @@ static bool anti_idle_is_endpoint_connected(void) {
 #endif // !(IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED))
 
 static void anti_idle_handler(struct k_work *work) {
-    if (!state.on) {
+    bool is_on;
+    int err = zmk_anti_idle_get_state(&is_on);
+    if (err) {
+        LOG_ERR("Failed to get anti-idle state");
+        return;
+    }
+
+    if (!is_on) {
         LOG_DBG("anti-idle is off, skipping execution");
         k_work_reschedule(&anti_idle_work, K_MSEC(ANTI_IDLE_INTERVAL_MS));
         return;
@@ -111,6 +146,12 @@ static void anti_idle_handler(struct k_work *work) {
 
 #if IS_ENABLED(CONFIG_SETTINGS)
 
+#if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
+#define ANTI_IDLE_SETTINGS_NAME "anti-idle/shared"
+#else
+#define ANTI_IDLE_SETTINGS_NAME "anti-idle/endpoints"
+#endif // IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_SHARED_ENDPOINT_CONFIGURATION)
+
 static int anti_idle_settings_load_cb(const char *name, size_t len, settings_read_cb read_cb, void *cb_arg) {
     const char *next;
     int rc;
@@ -127,10 +168,11 @@ static int anti_idle_settings_load_cb(const char *name, size_t len, settings_rea
     return -ENOENT;
 }
 
-SETTINGS_STATIC_HANDLER_DEFINE(anti_idle, "anti-idle", NULL, anti_idle_settings_load_cb, NULL, NULL);
+SETTINGS_STATIC_HANDLER_DEFINE(anti_idle, ANTI_IDLE_SETTINGS_NAME, NULL, anti_idle_settings_load_cb, NULL, NULL);
 
 static void zmk_anti_idle_save_state_work(struct k_work *_work) {
-    settings_save_one("anti-idle/state", &state, sizeof(state));
+    settings_save_one(ANTI_IDLE_SETTINGS_NAME "/state", &state, sizeof(state));
+    LOG_DBG("anti-idle %s state saved", ANTI_IDLE_SETTINGS_NAME);
 }
 
 static struct k_work_delayable anti_idle_save_work;
@@ -156,25 +198,35 @@ int zmk_anti_idle_save_state(void) {
 #endif
 }
 
-int zmk_anti_idle_get_state(bool *on_off) {
-    *on_off = state.on;
-    return 0;
-}
-
 int zmk_anti_idle_on(void) {
-    LOG_DBG("enable");
-    state.on = true;
+    int err = zmk_anti_idle_set_state(true);
+    if (err) {
+        LOG_ERR("Failed to set anti-idle state to on");
+        return err;
+    }
+
     return zmk_anti_idle_save_state();
 }
 
 int zmk_anti_idle_off(void) {
-    LOG_DBG("disable");
-    state.on = false;
+    int err = zmk_anti_idle_set_state(false);
+    if (err) {
+        LOG_ERR("Failed to set anti-idle state to off");
+        return err;
+    }
+
     return zmk_anti_idle_save_state();
 }
 
 int zmk_anti_idle_toggle(void) {
-    return state.on ? zmk_anti_idle_off() : zmk_anti_idle_on();
+    bool current_state;
+    int err = zmk_anti_idle_get_state(&current_state);
+    if (err) {
+        LOG_ERR("Failed to get anti-idle state");
+        return err;
+    }
+
+    return zmk_anti_idle_set_state(!current_state);
 }
 
 SYS_INIT(anti_idle_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
