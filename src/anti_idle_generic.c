@@ -56,26 +56,22 @@ static struct k_work_delayable anti_idle_work;
 
 #if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED)
 static bool anti_idle_is_endpoint_connected(void) {
-    struct zmk_endpoint_instance endpoint_instance = zmk_endpoints_selected();
+    enum zmk_transport transport = zmk_endpoints_selected().transport;
 
-    switch (endpoint_instance.transport) {
-        case ZMK_TRANSPORT_USB:
+    switch (transport) {
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-            bool usb_is_connected = zmk_usb_is_powered();
-            return usb_is_connected;
-#else
-            break;
+        case ZMK_TRANSPORT_USB:
+            return zmk_usb_is_powered();
 #endif
-        case ZMK_TRANSPORT_BLE:
 #if IS_ENABLED(CONFIG_ZMK_BLE)
-            bool ble_is_connected = zmk_ble_active_profile_is_connected();
-            return ble_is_connected;
-#else
-            break;
+        case ZMK_TRANSPORT_BLE:
+            return zmk_ble_active_profile_is_connected();
 #endif
+        default:
+            break;
     }
 
-    LOG_ERR("Unsupported transport type: %d", endpoint_instance.transport);
+    LOG_ERR("unsupported transport type: %d", transport);
     return false;
 }
 #endif // !(IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED))
