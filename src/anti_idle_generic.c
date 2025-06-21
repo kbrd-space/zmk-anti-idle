@@ -83,12 +83,14 @@ static bool anti_idle_is_endpoint_connected(void) {
 static void anti_idle_handler(struct k_work *work) {
     if (!state.on) {
         LOG_DBG("anti-idle is off, skipping execution");
+        k_work_reschedule(&anti_idle_work, K_MSEC(ANTI_IDLE_INTERVAL_MS));
         return;
     }
 
 #if IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED)
     if (!anti_idle_is_endpoint_connected()) {
         LOG_DBG("endpoint is not connected, skipping execution");
+        k_work_reschedule(&anti_idle_work, K_MSEC(ANTI_IDLE_INTERVAL_MS));
         return;
     }
 #endif // IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED)
@@ -108,7 +110,7 @@ static void anti_idle_handler(struct k_work *work) {
         zmk_behavior_queue_add(&event, binding, false, ANTI_IDLE_WAIT_MS);
     }
 
-    k_work_schedule(&anti_idle_work, K_MSEC(ANTI_IDLE_INTERVAL_MS));
+    k_work_reschedule(&anti_idle_work, K_MSEC(ANTI_IDLE_INTERVAL_MS));
 }
 
 #if IS_ENABLED(CONFIG_SETTINGS)
