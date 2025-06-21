@@ -104,6 +104,15 @@ static bool anti_idle_is_endpoint_connected(void) {
 }
 #endif // !(IS_ENABLED(CONFIG_ZMK_ANTI_IDLE_ENABLE_ONLY_CONNECTED))
 
+void raise_activity_to_prevent_sleep() {
+    raise_zmk_sensor_event((struct zmk_sensor_event) {
+        .sensor_index = UINT8_MAX,
+        .channel_data_size = 1,
+        .channel_data = {(struct zmk_sensor_channel_data) {
+            .channel = SENSOR_CHAN_GAUGE_STATE_OF_CHARGE}},
+        .timestamp = k_uptime_get()});
+}
+
 static void anti_idle_handler(struct k_work *work) {
     bool is_on;
     int err = zmk_anti_idle_get_state(&is_on);
@@ -140,6 +149,8 @@ static void anti_idle_handler(struct k_work *work) {
         zmk_behavior_queue_add(&event, binding, true, ANTI_IDLE_TAP_MS);
         zmk_behavior_queue_add(&event, binding, false, ANTI_IDLE_WAIT_MS);
     }
+
+    raise_activity_to_prevent_sleep();
 
     k_work_reschedule(&anti_idle_work, K_MSEC(ANTI_IDLE_INTERVAL_MS));
 }
