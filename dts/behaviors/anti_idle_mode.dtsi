@@ -11,10 +11,10 @@
 #if ZMK_BEHAVIOR_OMIT(AI)
         /omit-if-no-ref/
 #endif
-        ai: anti_idle {
-            compatible = "zmk,behavior-anti-idle";
+        aim: aim {
+            compatible = "zmk,behavior-anti-idle-mode";
             #binding-cells = <1>;
-            display-name = "Anti-idle";
+            display-name = "Anti-idle Mode";
         };
     };
 };

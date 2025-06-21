@@ -1,8 +1,8 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/kscan_mock.h>
 #include <behaviors.dtsi>
-#include <behaviors/anti_idle.dtsi>
-#include <dt-bindings/anti_idle.h>
+#include <behaviors/anti_idle_mode.dtsi>
+#include <dt-bindings/anti_idle_mode.h>
 
 / {
     anti_idle: anti_idle {
@@ -18,7 +18,7 @@
         default_layer {
             bindings = <
                 &kp A &kp B
-                &ai AI_TOG &none
+                &aim AIM_TOG &none
             >;
         };
     };

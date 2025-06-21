@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#define DT_DRV_COMPAT zmk_behavior_anti_idle
+#define DT_DRV_COMPAT zmk_behavior_anti_idle_mode
 
 #include <zephyr/device.h>
 #include <drivers/behavior.h>
@@ -12,7 +12,7 @@
 
 #include <zmk/keymap.h>
 
-#include <dt-bindings/anti_idle.h>
+#include <dt-bindings/anti_idle_mode.h>
 #include <anti_idle_generic.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
@@ -25,17 +25,17 @@ static const struct behavior_parameter_value_metadata no_arg_values[] = {
     {
         .display_name = "Toggle On/Off",
         .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE,
-        .value = ANTI_IDLE_TOG_CMD,
+        .value = ANTI_IDLE_MODE_TOG_CMD,
     },
     {
         .display_name = "Turn On",
         .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE,
-        .value = ANTI_IDLE_ON_CMD,
+        .value = ANTI_IDLE_MODE_ON_CMD,
     },
     {
         .display_name = "Turn Off",
         .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE,
-        .value = ANTI_IDLE_OFF_CMD,
+        .value = ANTI_IDLE_MODE_OFF_CMD,
     },
 };
 
@@ -62,11 +62,11 @@ static int on_keymap_binding_pressed(
 ) {
     LOG_DBG("handling keymap event (param %d)", binding->param1);
     switch (binding->param1) {
-        case ANTI_IDLE_TOG_CMD:
+        case ANTI_IDLE_MODE_TOG_CMD:
             return zmk_anti_idle_toggle();
-        case ANTI_IDLE_ON_CMD:
+        case ANTI_IDLE_MODE_ON_CMD:
             return zmk_anti_idle_on();
-        case ANTI_IDLE_OFF_CMD:
+        case ANTI_IDLE_MODE_OFF_CMD:
             return zmk_anti_idle_off();
     }
 
